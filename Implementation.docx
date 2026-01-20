@@ -1,0 +1,109 @@
+How To Implement ?
+
+[Phase 1]
+
+Final Architecture (High-Level)
+
+[Scheduler: 7:00–8:00 AM ET]
+        ↓
+[News Scraper]
+        ↓
+[Ticker Extraction + Market Data Snapshot]
+        ↓
+[LangGraph Agents Pipeline]
+    ├─ News Interpretation Agent
+    ├─ Market Context Agent
+    ├─ Technical Bias Agent
+    ├─ Risk Judge Agent
+        ↓
+[Decision Router]
+    ├─ Approve → Execution Node (optional paper trade)
+    ├─ Reject → Stop
+    ├─ Require Human → Human Approval Node
+        ↓
+[Execution (Paper Trade)]
+        ↓
+[Post-Trade Reflection Agent]
+        ↓
+[Store State + Feedback for Next Day]
+
+
+⸻
+
+ How Each Component Works
+	1.	Scheduler
+
+	•	Cron job or cloud scheduler
+	•	Runs at 7–8 AM ET to scrape overnight + early morning news
+
+	2.	News Scraper
+
+	•	Fetch news from API / RSS / custom feeds
+	•	Deduplicate articles
+	•	Output: raw news JSON
+
+	3.	Ticker Extraction + Market Snapshot
+
+	•	Extract stock symbols
+	•	Fetch premarket data:
+	•	Previous close, gap %, premarket volume, SPY/QQQ trend
+
+	4.	LLM Agents (LangGraph Pipeline)
+
+	•	News Interpretation Agent → Is the news tradeable today? Direction & urgency
+	•	Market Context Agent → Is the market supportive or risky?
+	•	Technical Bias Agent → Price/volume analysis, trend confirmation
+	•	Risk Judge Agent → Reads all previous outputs, decides: approve/reject/human
+
+	5.	Decision Router (LangGraph)
+
+	•	Routes based on decision field from Risk Judge:
+	•	Approve → Execution
+	•	Reject → Stop
+	•	Human → Human Approval Node
+
+	6.	Human Approval Node
+
+	•	Optional override for trades
+	•	Approve/reject trade
+	•	Update state
+
+	7.	Execution Node
+
+	•	Paper trade (or live trading if safe)
+	•	Follows pre-determined entry/stop/target
+	•	Records outcome
+
+	8.	Post-Trade Reflection Agent
+
+	•	LLM reads trade + thesis + market data
+	•	Generates insights & improvement suggestions
+	•	Stores in DB for learning
+
+⸻
+
+ Key Features / Why This Is Strong
+	•	 LLMs are used only for reasoning, not execution
+	•	 Agents allow specialized analysis & conflict handling
+	•	 LangGraph orchestrates dynamic routing + human-in-the-loop
+	•	 Pre-market scraping ensures ready-to-trade watchlist before 9:30 AM
+	•	 Post-trade reflection builds continuous improvement / memory
+
+⸻
+
+ Minimal Timeline Example (Daily Run)
+
+Time (ET)	Action
+07:00	Scheduler triggers scraper
+07:00–07:30	Scrape & deduplicate news
+07:30–08:30	Agents analyze news & market data
+08:30–09:00	Human approval (if required)
+09:00	Watchlist ready & trades queued
+09:30	Market open, optional execution
+
+
+⸻
+
+ One-Sentence Explanation 
+
+“Our system scrapes news before the market opens, uses specialized LLM agents to reason about news, market context, and technical bias, resolves conflicts through a LangGraph decision router with human oversight, and outputs a ready-to-trade watchlist before the market opens.”
